@@ -40,9 +40,18 @@ if not check_password():
 
 # --- Configuración de la App (el resto de tu código) ---
 try:
-    locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
-except:
-    locale.setlocale(locale.LC_TIME, 'spanish')
+    locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')  # Argentina
+except locale.Error:
+    try:
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  # España
+    except locale.Error:
+        try:
+            locale.setlocale(locale.LC_TIME, 'es_ES')  # sin UTF-8
+        except locale.Error:
+            try:
+                locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')  # Windows
+            except locale.Error:
+                print("No se pudo establecer locale en español")
 
 st.set_page_config(
     layout="wide",
