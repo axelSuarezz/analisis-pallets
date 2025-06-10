@@ -74,7 +74,21 @@ st.sidebar.header("🔍 Filtros")
 comparar = st.sidebar.checkbox("🔄 Comparar dos socios")
 
 # Ordenar meses cronológicamente
-meses_ordenados = sorted(df['mes_año'].unique(), key=lambda x: datetime.strptime(x, '%B %Y'))
+# Si el locale falla, traducir manualmente
+if 'mes_año' in df.columns:
+    meses_ingles_espanol = {
+        'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo',
+        'April': 'Abril', 'May': 'Mayo', 'June': 'Junio',
+        'July': 'Julio', 'August': 'Agosto', 'September': 'Septiembre',
+        'October': 'Octubre', 'November': 'Noviembre', 'December': 'Diciembre'
+    }
+    df['mes_año'] = df['mes_año'].replace(meses_ingles_espanol, regex=True)
+
+# Ordenar meses cronológicamente
+meses_ordenados = sorted(
+    df['mes_año'].unique(),
+    key=lambda x: datetime.strptime(x, '%B %Y' if locale.getlocale()[0] else '%B %Y')
+)
 
 if comparar:
     st.sidebar.markdown("**Comparar entre socios**")
