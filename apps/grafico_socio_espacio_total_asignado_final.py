@@ -40,7 +40,7 @@ if not check_password():
 
 # --- Configuración de la App (el resto de tu código) ---
 try:
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
 except:
     locale.setlocale(locale.LC_TIME, 'spanish')
 
