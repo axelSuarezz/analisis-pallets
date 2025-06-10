@@ -64,7 +64,7 @@ def load_data():
     ruta = os.path.join(os.path.dirname(__file__), 'espacio_total_asignado_final.xlsx')
     df = pd.read_excel(ruta)
     df['fecha'] = pd.to_datetime(df['fecha'])
-    df['mes_año'] = df['fecha'].dt.strftime('%B %Y').str.title()
+    df['mes_año'] = df['fecha'].dt.strftime('%B %Y')
     return df
 
 df = load_data()
