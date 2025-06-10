@@ -5,19 +5,9 @@ import seaborn as sns
 from datetime import datetime
 import locale
 import os
-from contextlib import contextmanager
 from streamlit.web.bootstrap import load_config_options
 
 SECRETS_PATH = os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml")
-
-# --- Función para manejar el locale ---
-@contextmanager
-def set_locale(name):
-    saved = locale.setlocale(locale.LC_TIME)
-    try:
-        yield locale.setlocale(locale.LC_TIME, name)
-    finally:
-        locale.setlocale(locale.LC_TIME, saved)
 
 # Verificación y carga de secrets
 if not os.path.exists(SECRETS_PATH):
@@ -48,18 +38,20 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- Configuración de la App ---
-# Intentamos configurar el locale en español
+# --- Configuración de la App (el resto de tu código) ---
 try:
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')  # Argentina
 except locale.Error:
     try:
-        locale.setlocale(locale.LC_TIME, 'es_AR.UTF-8')
+        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')  # España
     except locale.Error:
         try:
-            locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')  # Windows
+            locale.setlocale(locale.LC_TIME, 'es_ES')  # sin UTF-8
         except locale.Error:
-            st.warning("No se pudo configurar el locale en español. Algunos elementos pueden mostrarse en inglés.")
+            try:
+                locale.setlocale(locale.LC_TIME, 'Spanish_Spain.1252')  # Windows
+            except locale.Error:
+                print("No se pudo establecer locale en español")
 
 st.set_page_config(
     layout="wide",
@@ -72,11 +64,7 @@ def load_data():
     ruta = os.path.join(os.path.dirname(__file__), 'espacio_total_asignado_final.xlsx')
     df = pd.read_excel(ruta)
     df['fecha'] = pd.to_datetime(df['fecha'])
-    
-    # Creamos la columna mes_año con el locale correcto
-    with set_locale('es_ES.UTF-8'):
-        df['mes_año'] = df['fecha'].dt.strftime('%B %Y').str.title()
-    
+    df['mes_año'] = df['fecha'].dt.strftime('%B %Y').str.title()
     return df
 
 df = load_data()
@@ -85,23 +73,8 @@ df = load_data()
 st.sidebar.header("🔍 Filtros")
 comparar = st.sidebar.checkbox("🔄 Comparar dos socios")
 
-# Ordenar meses cronológicamente con manejo de locale
-try:
-    with set_locale('es_ES.UTF-8'):
-        meses_ordenados = sorted(df['mes_año'].unique(), key=lambda x: datetime.strptime(x, '%B %Y'))
-except:
-    # Fallback si el locale falla
-    MESES_ESP = {
-        'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
-        'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
-        'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12
-    }
-    
-    def mes_a_fecha(mes_año):
-        mes, año = mes_año.split()
-        return datetime(int(año), MESES_ESP[mes], 1)
-    
-    meses_ordenados = sorted(df['mes_año'].unique(), key=mes_a_fecha)
+# Ordenar meses cronológicamente
+meses_ordenados = sorted(df['mes_año'].unique(), key=lambda x: datetime.strptime(x, '%B %Y'))
 
 if comparar:
     st.sidebar.markdown("**Comparar entre socios**")
@@ -155,11 +128,7 @@ if comparar:
         ax.set_title(f"{socio_nombre}", fontsize=12)
         ax.set_ylabel("Pallets")
         ax.set_xlabel("Fecha")
-        
-        # Formatear fechas en español
-        with set_locale('es_ES.UTF-8'):
-            ax.set_xticklabels([d.strftime('%d-%b') for d in df_filtrado['fecha']], rotation=45)
-        
+        ax.set_xticklabels([d.strftime('%d-%b') for d in df_filtrado['fecha']], rotation=45)
         ax.legend()
         return fig
 
@@ -167,6 +136,7 @@ if comparar:
         st.pyplot(plot_comparacion(df_1, socio_1, max_valor_y))
     with col2:
         st.pyplot(plot_comparacion(df_2, socio_2, max_valor_y))
+
 
 else:
     # Sólo mostrar si NO se está comparando
@@ -223,11 +193,7 @@ else:
     ax.set_ylabel("Cantidad de Pallets", fontsize=12)
     ax.set_xlabel("Fecha", fontsize=12)
     ax.set_title(f"Pallets diarios vs Espacio Asignado - {socio_nombre} ({mes_seleccionado})", fontsize=14, pad=20)
-    
-    # Formatear fechas en español
-    with set_locale('es_ES.UTF-8'):
-        ax.set_xticklabels([date.strftime('%d-%b') for date in df_filtrado['fecha']])
-    
+    ax.set_xticklabels([date.strftime('%d-%b') for date in df_filtrado['fecha']])
     plt.xticks(rotation=45)
     for p in ax.patches:
         ax.annotate(f"{int(p.get_height())}", 
