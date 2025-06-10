@@ -61,7 +61,7 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    ruta = os.path.join(os.path.dirname(__file__), 'datos', 'espacio_total_asignado_final.xlsx')
+    ruta = 'espacio_total_asignado_final.xlsx'  # Mismo directorio que el script
     df = pd.read_excel(ruta)
     df['fecha'] = pd.to_datetime(df['fecha'])
     df['mes_año'] = df['fecha'].dt.strftime('%B %Y').str.title()
